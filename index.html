@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function() {
+      // REEMPLAZA "TU_PUBLIC_KEY" con la que está en Account -> Public Key en EmailJS
+      emailjs.init("TU_PUBLIC_KEY"); 
+    })();
+  </script>
+
+  <style>
+    .active-tab { border-bottom: 4px solid #b91c1c; color: #b91c1c; font-weight: bold; }
+    .cart-drawer { transition: transform 0.3s ease; transform: translateX(100%); }
+    .cart-drawer.open { transform: translateX(0); }
+    .product-image { width: 100%; height: 160px; object-fit: cover; border-radius: 0.75rem; margin-bottom: 0.75rem; background-color: #f3f4f6; }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+  <header class="bg-white shadow-md sticky top-0 z-50">
+    <div class="p-4 flex justify-between items-center bg-red-700 text-white">
+      <h1 class="text-xl font-black italic uppercase">Grupo Super Cauchos</h1>
+      <button onclick="toggleCart()" class="relative p-2 bg-red-900 rounded-full">
+        <i class="fas fa-shopping-cart text-lg"></i>
+        <span id="badge" class="absolute -top-1 -right-1 bg-yellow-400 text-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
+      </button>
+    </div>
+    <div class="flex text-center border-b bg-white font-bold">
+      <div id="tLub" onclick="setTab('lub')" class="flex-1 py-3 cursor-pointer active-tab uppercase">Lubricantes</div>
+      <div id="tCau" onclick="setTab('cau')" class="flex-1 py-3 cursor-pointer uppercase">Cauchos</div>
+    </div>
+    <div class="p-3 bg-gray-50 border-b space-y-2">
+      <div class="grid grid-cols-2 gap-2">
+        <select id="fCat" onchange="render()" class="p-2 border rounded-lg font-bold text-gray-700 bg-white text-xs">
+          <option value="">CATEGORÍA (Todas)</option>
+        </select>
+        <select id="fMar" onchange="render()" class="p-2 border rounded-lg font-bold text-gray-700 bg-white text-xs">
+          <option value="">MARCA (Todas)</option>
+        </select>
+      </div>
+      <input id="fSearch" onkeyup="render()" type="text" placeholder="Buscar por nombre o medida..." class="w-full p-2 border rounded-lg text-sm">
+    </div>
+  </header>
+
+  <main id="container" class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-24">
+    <div class="col-span-full text-center py-20 text-gray-400 italic font-bold">Cargando inventario...</div>
+  </main>
+
+  <div id="overlay" onclick="toggleCart()" class="fixed inset-0 bg-black/50 hidden z-[60]"></div>
+  <div id="cart" class="fixed top-0 right-0 w-full sm:w-96 h-full bg-white z-[70] cart-drawer shadow-2xl flex flex-col">
+    <div class="p-4 bg-red-700 text-white flex justify-between items-center">
+      <h2 class="font-bold italic uppercase">Finalizar Compra</h2>
+      <button onclick="toggleCart()" class="text-3xl">&times;</button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+      <div class="bg-gray-100 p-4 rounded-xl space-y-3 shadow-inner">
+        <p class="text-[10px] font-black text-gray-500 uppercase">Información del Cliente</p>
+        <input type="text" id="cNombre" placeholder="Nombre completo" class="w-full p-2 border rounded">
+        <input type="email" id="cCorreo" placeholder="Correo electrónico" class="w-full p-2 border rounded">
+        <div class="flex gap-1">
+          <select id="cPais" class="p-2 border rounded bg-white text-sm">
+            <option value="58">🇻🇪 +58</option>
+            <option value="57">🇨🇴 +57</option>
+          </select>
+          <input type="tel" id="cTelefono" placeholder="Teléfono" class="flex-1 p-2 border rounded">
+        </div>
+      </div>
+      <div id="cartItems" class="space-y-2"></div>
+    </div>
+    <div class="p-4 border-t bg-white shadow-2xl">
+      <div class="flex justify-between text-2xl font-black mb-4 text-red-700 italic">
+        <span>TOTAL:</span>
+        <span id="cartTotal">$0.00</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="procesarEnvio('ws')" class="bg-green-600 text-white py-4 rounded-xl font-bold flex flex-col items-center shadow-lg active:scale-95">
+          <i class="fab fa-whatsapp text-xl mb-1"></i><span class="text-[9px]">WHATSAPP</span>
+        </button>
+        <button onclick="procesarEnvio('mail')" class="bg-blue-600 text-white py-4 rounded-xl font-bold flex flex-col items-center shadow-lg active:scale-95">
+          <i class="fas fa-envelope text-xl mb-1"></i><span class="text-[9px]">CORREO</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let rawLub = [], rawCau = [], cart = [], currentTab = 'lub';
+    const IMAGEN_POR_DEFECTO = 'https://drive.google.com/uc?export=view&id=1iEelG4iv-yBzaA6LdTsvIWlXrlMgG3We';
+    
+    // 2. CONFIGURACIÓN SHEETDB
+    const SHEETDB_URL = "https://sheetdb.io/api/v1/TU_ID_DE_SHEETDB"; // Reemplaza con tu ID
+
+    window.onload = async () => {
+      await cargarDatos();
+      updateFilters();
+      render();
+    };
+
+    async function cargarDatos() {
+      try {
+        // Obtenemos Lubricantes (Sheet1 por defecto o especifica con ?sheet=Lubricantes)
+        const resLub = await fetch(`${SHEETDB_URL}?sheet=Lubricantes`);
+        const dataLub = await resLub.json();
+        rawLub = dataLub.map((row, i) => ({
+          linea: row.LINEA, nombre: row.PRODUCTOS, tipo: row.TIPO, ref: row.REF, 
+          empaque: row.EMPAQUE, precio: parseFloat(row.PRECIO) || 0, 
+          marca: row.MARCA, foto: row.FOTO || IMAGEN_POR_DEFECTO, id: 'lub_' + i
+        }));
+
+        // Obtenemos Cauchos
+        const resCau = await fetch(`${SHEETDB_URL}?sheet=Cauchos`);
+        const dataCau = await resCau.json();
+        rawCau = dataCau.map((row, i) => ({
+          medida: row.MEDIDA, marca: row.MARCA, contado: parseFloat(row.CONTADO) || 0,
+          credito: parseFloat(row.CREDITO) || 0, categoria: row.CATEGORIA,
+          foto: row.FOTO || IMAGEN_POR_DEFECTO, id: 'cau_' + i
+        }));
+      } catch (e) {
+        console.error("Error cargando SheetDB:", e);
+      }
+    }
+
+    // [FUNCIONES setTab, updateFilters, render, add, updateCart, changeQty, toggleCart se mantienen casi igual]
+    // Solo asegúrate que render() use los nombres de campos de arriba.
+
+    function procesarEnvio(metodo) {
+      const nom = document.getElementById('cNombre').value;
+      const mail = document.getElementById('cCorreo').value;
+      const cod = document.getElementById('cPais').value;
+      const tel = document.getElementById('cTelefono').value;
+      const total = document.getElementById('cartTotal').innerText;
+
+      if(!cart.length || !nom || !mail || !tel) return alert("Completa todos los datos.");
+
+      if(metodo === 'ws') {
+        let msg = `*PEDIDO MOBIL*\n\n*Cliente:* ${nom}\n\n`;
+        cart.forEach(i => msg += `• ${i.name} [x${i.qty}] - $${(i.price*i.qty).toFixed(2)}\n`);
+        msg += `\n*TOTAL: ${total}*`;
+        window.open(`https://wa.me/${cod}${tel.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+      } else {
+        // 3. ENVÍO CON EMAILJS
+        const listaProductos = cart.map(i => `• ${i.name} (x${i.qty}) - $${(i.price*i.qty).toFixed(2)}`).join('\n');
+        
+        const templateParams = {
+          name: nom,
+          time: new Date().toLocaleString(),
+          message: listaProductos,
+          total: total,
+          user_email: mail // El correo del cliente para que le llegue a él
+        };
+
+        emailjs.send('service_z64r2df', 'template_flf3eix', templateParams)
+          .then(() => {
+            alert("¡Pedido enviado con éxito a tu correo!");
+            cart = []; updateCart(); toggleCart();
+          }, (error) => {
+            alert("Error al enviar: " + JSON.stringify(error));
+          });
+      }
+    }
+
+    // ... (Mantén el resto de funciones de renderizado igual que tu código original)
+    function setTab(t) { currentTab = t; updateFilters(); render(); }
+    function add(id, name, price) {
+      const x = cart.find(i => i.id === id);
+      if(x) x.qty++; else cart.push({id, name, price, qty: 1});
+      updateCart();
+    }
+    function updateCart() {
+       const list = document.getElementById('cartItems');
+       document.getElementById('badge').innerText = cart.reduce((a,b) => a + b.qty, 0);
+       list.innerHTML = cart.map(i => `
+         <div class="flex justify-between items-center bg-white p-3 border rounded-xl shadow-sm">
+           <div class="flex-1 mr-3"><p class="text-[11px] font-bold leading-tight">${i.name}</p><p class="text-xs text-red-600 font-black">$${(i.price*i.qty).toFixed(2)}</p></div>
+           <div class="flex items-center gap-2">
+             <button onclick="changeQty('${i.id}',-1)" class="w-7 h-7 bg-gray-50 border rounded-lg">-</button>
+             <span class="text-xs font-bold w-4 text-center">${i.qty}</span>
+             <button onclick="changeQty('${i.id}',1)" class="w-7 h-7 bg-gray-50 border rounded-lg">+</button>
+           </div>
+         </div>`).join('');
+       const total = cart.reduce((a,b) => a + (b.price * b.qty), 0);
+       document.getElementById('cartTotal').innerText = `$${total.toFixed(2)}`;
+    }
+    function changeQty(id, d) {
+       const x = cart.find(i => i.id === id);
+       if(x) { x.qty += d; if(x.qty <= 0) cart = cart.filter(i => i.id !== id); }
+       updateCart();
+    }
+    function toggleCart() {
+       document.getElementById('cart').classList.toggle('open');
+       document.getElementById('overlay').classList.toggle('hidden');
+    }
+    function updateFilters() {
+      const data = currentTab === 'lub' ? rawLub : rawCau;
+      const fMar = document.getElementById('fMar');
+      const mars = [...new Set(data.map(i => i.marca))].filter(Boolean).sort();
+      fMar.innerHTML = '<option value="">MARCA (Todas)</option>' + mars.map(m => `<option value="${m}">${m}</option>`).join('');
+      const fCat = document.getElementById('fCat');
+      const cats = [...new Set(data.map(i => currentTab === 'lub' ? i.linea : i.categoria))].filter(Boolean).sort();
+      fCat.innerHTML = '<option value="">CATEGORÍA (Todas)</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+    function render() {
+      const box = document.getElementById('container'), search = document.getElementById('fSearch').value.toLowerCase();
+      const mar = document.getElementById('fMar').value, cat = document.getElementById('fCat').value;
+      const data = currentTab === 'lub' ? rawLub : rawCau;
+      let filtered = data.filter(i => {
+        const txt = (i.nombre || i.medida || "").toLowerCase() + " " + (i.marca || "").toLowerCase();
+        return txt.includes(search) && (!mar || i.marca === mar) && (!cat || (currentTab === 'lub' ? i.linea === cat : i.categoria === cat));
+      });
+      if(!filtered.length) { box.innerHTML = '<div class="col-span-full text-center py-20 text-gray-400">Sin resultados.</div>'; return; }
+      box.innerHTML = filtered.map(i => {
+        const price = currentTab === 'lub' ? i.precio : i.contado;
+        const sub = currentTab === 'lub' ? i.tipo : i.categoria;
+        return `
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+            <img src="${i.foto}" class="product-image" onerror="this.src='${IMAGEN_POR_DEFECTO}'">
+            <div class="flex justify-between items-center mb-1"><span class="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-black uppercase">${i.marca}</span></div>
+            <h3 class="font-bold text-gray-800 text-lg mb-1">${i.nombre || i.medida}</h3>
+            <p class="text-xs text-gray-400 italic mb-4">${sub}</p>
+            <div class="flex justify-between items-center">
+              <span class="text-2xl font-black text-red-700 italic">$${price.toFixed(2)}</span>
+              <button onclick="add('${i.id}', '${i.nombre || i.medida}', ${price})" class="bg-gray-800 text-white px-5 py-2 rounded-xl font-bold text-xs">AÑADIR</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+  </script>
+</body>
+</html>

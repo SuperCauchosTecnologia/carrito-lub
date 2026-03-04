@@ -191,19 +191,19 @@
       document.getElementById('overlay').classList.toggle('hidden');
     }
 
-    function procesarEnvio(metodo) {
+function procesarEnvio(metodo) {
       const nom = document.getElementById('cNombre').value;
       const mail = document.getElementById('cCorreo').value;
       const cod = document.getElementById('cPais').value;
       const tel = document.getElementById('cTelefono').value;
-      const total = document.getElementById('cartTotal').innerText;
+      const totalLabel = document.getElementById('cartTotal').innerText;
 
       if(!cart.length || !nom || !mail || !tel) return alert("Por favor completa los datos del cliente.");
 
       if(metodo === 'ws') {
         let msg = `*NUEVO PEDIDO LUBRICANTES*\n\n*Cliente:* ${nom}\n*Telf:* +${cod}${tel}\n\n`;
         cart.forEach(i => msg += `• ${i.name} [x${i.qty}] - $${(i.price*i.qty).toFixed(2)}\n`);
-        msg += `\n*TOTAL: ${total}*`;
+        msg += `\n*TOTAL: ${totalLabel}*`;
         window.open(`https://wa.me/${cod}${tel.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
       } else {
         const btn = document.getElementById('btnMail');
@@ -211,23 +211,27 @@
         const oldContent = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xl"></i>';
 
-        // Texto plano para la tabla de productos
-        let listaTexto = cart.map(i => `${i.name} (x${i.qty}) - $${(i.price*i.qty).toFixed(2)}`).join('\n');
+        // 1. Preparamos el mensaje de productos (esto irá a {{message}} en tu template)
+        let listaTexto = cart.map(i => `• ${i.name} (x${i.qty}) - $${(i.price*i.qty).toFixed(2)}`).join('\n');
 
+        // 2. Mapeamos las variables EXACTAMENTE como las tienes en tu HTML de EmailJS
         const templateParams = {
-          nombre: nom,
-          email_cliente: mail,
-          telefono: `+${cod}${tel}`,
-          tabla_productos: listaTexto,
-          total_pedido: total
+          name: nom,             // Coincide con {{name}}
+          email_to: mail,        // Para que sepas a quién enviárselo (configúralo en EmailJS Settings)
+          message: listaTexto,   // Coincide con {{message}}
+          total: totalLabel,     // Coincide con {{total}}
+          time: new Date().toLocaleString() // Coincide con {{time}}
         };
 
         emailjs.send('service_z64r2df', 'template_flf3eix', templateParams)
           .then(() => {
-            alert("¡Pedido enviado! Revisa tu correo electrónico.");
+            alert("¡Pedido enviado con éxito! Revisa tu correo.");
             cart = []; updateCart(); toggleCart();
           })
-          .catch((err) => alert("Error: " + JSON.stringify(err)))
+          .catch((err) => {
+            console.error("Detalle del error:", err);
+            alert("Error al enviar: " + (err.text || "Consulta la consola (F12)"));
+          })
           .finally(() => {
             btn.disabled = false;
             btn.innerHTML = oldContent;

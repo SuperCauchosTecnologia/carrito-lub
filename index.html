@@ -3,82 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Grupo Super Cauchos - Catálogo</title>
+  <title>Grupo Super Cauchos - Lubricantes</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-  <script type="text/javascript">
-    (function() {
-      // Inicialización con tu Public Key proporcionada
-      emailjs.init("NdAFdUwfeMmVhLG-s"); 
-    })();
-  </script>
-
   <style>
-    .active-tab { border-bottom: 4px solid #b91c1c; color: #b91c1c; font-weight: bold; }
     .cart-drawer { transition: transform 0.3s ease; transform: translateX(100%); }
     .cart-drawer.open { transform: translateX(0); }
-    .product-image { width: 100%; height: 160px; object-fit: contain; border-radius: 0.75rem; margin-bottom: 0.75rem; background-color: #fff; }
-    .loader { border-top-color: #b91c1c; animation: spinner 0.6s linear infinite; }
-    @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .active-filter { border-color: #b91c1c; color: #b91c1c; }
   </style>
 </head>
 <body class="bg-gray-100 font-sans">
 
   <header class="bg-white shadow-md sticky top-0 z-50">
     <div class="p-4 flex justify-between items-center bg-red-700 text-white">
-      <h1 class="text-xl font-black italic uppercase tracking-tighter">Grupo Super Cauchos</h1>
+      <h1 class="text-xl font-black italic uppercase">Grupo Super Cauchos</h1>
       <button onclick="toggleCart()" class="relative p-2 bg-red-900 rounded-full">
         <i class="fas fa-shopping-cart text-lg"></i>
         <span id="badge" class="absolute -top-1 -right-1 bg-yellow-400 text-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
       </button>
     </div>
 
-    <div class="flex text-center border-b bg-white font-bold text-sm">
-      <div id="tLub" onclick="setTab('lub')" class="flex-1 py-3 cursor-pointer active-tab uppercase">Lubricantes</div>
-      <div id="tCau" onclick="setTab('cau')" class="flex-1 py-3 cursor-pointer uppercase">Cauchos</div>
+    <div class="py-3 bg-white text-center border-b">
+        <h2 class="text-red-700 font-black uppercase italic tracking-widest">Catálogo de Lubricantes</h2>
     </div>
 
     <div class="p-3 bg-gray-50 border-b space-y-2">
       <div class="grid grid-cols-2 gap-2">
-        <select id="fCat" onchange="render()" class="p-2 border rounded-lg font-bold text-gray-700 bg-white text-xs outline-none">
+        <select id="fCat" onchange="render()" class="p-2 border rounded-lg font-bold text-gray-700 bg-white text-xs">
           <option value="">CATEGORÍA (Todas)</option>
         </select>
-        <select id="fMar" onchange="render()" class="p-2 border rounded-lg font-bold text-gray-700 bg-white text-xs outline-none">
+        <select id="fMar" onchange="render()" class="p-2 border rounded-lg font-bold text-gray-700 bg-white text-xs">
           <option value="">MARCA (Todas)</option>
         </select>
       </div>
-      <input id="fSearch" onkeyup="render()" type="text" placeholder="Buscar producto..." class="w-full p-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-red-500">
+      <input id="fSearch" onkeyup="render()" type="text" placeholder="Buscar producto..." class="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none">
     </div>
   </header>
 
-  <main id="container" class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-24">
-    <div class="col-span-full flex flex-col items-center py-20 text-gray-400">
-        <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
-        <p class="italic font-bold">Cargando datos de SheetDB...</p>
-    </div>
+  <main id="container" class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-24">
+    <div class="col-span-full text-center py-20 text-gray-400 italic font-bold">Cargando lubricantes...</div>
   </main>
 
   <div id="overlay" onclick="toggleCart()" class="fixed inset-0 bg-black/50 hidden z-[60]"></div>
   <div id="cart" class="fixed top-0 right-0 w-full sm:w-96 h-full bg-white z-[70] cart-drawer shadow-2xl flex flex-col">
     <div class="p-4 bg-red-700 text-white flex justify-between items-center">
-      <h2 class="font-bold italic uppercase">Finalizar Pedido</h2>
+      <h2 class="font-bold italic uppercase">Finalizar Compra</h2>
       <button onclick="toggleCart()" class="text-3xl">&times;</button>
     </div>
 
     <div class="flex-1 overflow-y-auto p-4 space-y-4">
       <div class="bg-gray-100 p-4 rounded-xl space-y-3 shadow-inner">
         <p class="text-[10px] font-black text-gray-500 uppercase">Información del Cliente</p>
-        <input type="text" id="cNombre" placeholder="Nombre completo" class="w-full p-2 border rounded text-sm">
-        <input type="email" id="cCorreo" placeholder="Correo para recibir el resumen" class="w-full p-2 border rounded text-sm">
+        <input type="text" id="cNombre" placeholder="Nombre completo" class="w-full p-2 border rounded">
+        <input type="email" id="cCorreo" placeholder="Correo electrónico" class="w-full p-2 border rounded">
         <div class="flex gap-1">
           <select id="cPais" class="p-2 border rounded bg-white text-sm">
             <option value="58">🇻🇪 +58</option>
             <option value="57">🇨🇴 +57</option>
             <option value="1">🇺🇸 +1</option>
           </select>
-          <input type="tel" id="cTelefono" placeholder="Teléfono" class="flex-1 p-2 border rounded text-sm">
+          <input type="tel" id="cTelefono" placeholder="Teléfono" class="flex-1 p-2 border rounded">
         </div>
       </div>
       <div id="cartItems" class="space-y-2"></div>
@@ -90,135 +74,104 @@
         <span id="cartTotal">$0.00</span>
       </div>
       <div class="grid grid-cols-2 gap-2">
-        <button onclick="procesarEnvio('ws')" class="bg-green-600 text-white py-4 rounded-xl font-bold flex flex-col items-center shadow-lg active:scale-95 transition">
+        <button onclick="procesarEnvio('ws')" class="bg-green-600 text-white py-4 rounded-xl font-bold flex flex-col items-center shadow-lg active:scale-95">
           <i class="fab fa-whatsapp text-xl mb-1"></i><span class="text-[9px]">WHATSAPP</span>
         </button>
-        <button id="btnEmail" onclick="procesarEnvio('mail')" class="bg-blue-600 text-white py-4 rounded-xl font-bold flex flex-col items-center shadow-lg active:scale-95 transition">
-          <i class="fas fa-envelope text-xl mb-1"></i><span class="text-[9px]">ENVIAR AL CORREO</span>
+        <button onclick="procesarEnvio('mail')" class="bg-blue-600 text-white py-4 rounded-xl font-bold flex flex-col items-center shadow-lg active:scale-95">
+          <i class="fas fa-envelope text-xl mb-1"></i><span class="text-[9px]">CORREO</span>
         </button>
       </div>
     </div>
   </div>
 
   <script>
-    let rawLub = [], rawCau = [], cart = [], currentTab = 'lub';
-    const API_URL = "https://sheetdb.io/api/v1/o8fpwx43935zm";
-    const IMG_FALLBACK = 'https://drive.google.com/uc?export=view&id=1iEelG4iv-yBzaA6LdTsvIWlXrlMgG3We';
+    // ⚠️ PEGA AQUÍ TU URL DE GOOGLE APP SCRIPT
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwan74fgjyP2Jt8DyaOmPonyP2vY4mbNG7TRffNBd8NDzsEzIuACpvNkBiLLENXeiQ/exec'; 
 
-    window.onload = async () => {
-      await fetchData();
-      updateFilters();
-      render();
+    let rawLub = [], cart = [];
+
+    window.onload = () => {
+      fetch(`${WEB_APP_URL}?action=getLubricantes`)
+        .then(res => res.json())
+        .then(data => {
+            rawLub = data;
+            updateFilters();
+            render();
+        })
+        .catch(err => {
+            document.getElementById('container').innerHTML = '<div class="col-span-full text-center text-red-500 py-20 font-bold">Error cargando datos. Revisa la URL de App Script.</div>';
+        });
     };
 
-    async function fetchData() {
-      try {
-        const [resLub, resCau] = await Promise.all([
-          fetch(`${API_URL}?sheet=Lubricantes`),
-          fetch(`${API_URL}?sheet=Cauchos`)
-        ]);
-        
-        const dataLub = await resLub.json();
-        rawLub = dataLub.map((row, i) => ({
-          linea: row.LINEA || '',
-          nombre: row.PRODUCTOS || '',
-          tipo: row.TIPO || '',
-          ref: row.REF || '',
-          empaque: row.EMPAQUE || '',
-          precio: parseFloat(row.PRECIO) || 0,
-          marca: row.MARCA || '',
-          foto: row.FOTO || IMG_FALLBACK,
-          id: 'lub_' + i
-        })).filter(p => p.nombre !== "");
-
-        const dataCau = await resCau.json();
-        rawCau = dataCau.map((row, i) => ({
-          medida: row.MEDIDA || '',
-          marca: row.MARCA || '',
-          contado: parseFloat(row.CONTADO) || 0,
-          credito: parseFloat(row.CREDITO) || 0,
-          categoria: row.CATEGORIA || '',
-          foto: row.FOTO || IMG_FALLBACK,
-          id: 'cau_' + i
-        })).filter(p => p.marca !== "");
-
-      } catch (e) {
-        console.error("Error:", e);
-      }
-    }
-
-    function setTab(t) {
-      currentTab = t;
-      document.getElementById('tLub').className = t === 'lub' ? 'flex-1 py-3 cursor-pointer active-tab uppercase' : 'flex-1 py-3 cursor-pointer uppercase';
-      document.getElementById('tCau').className = t === 'cau' ? 'flex-1 py-3 cursor-pointer active-tab uppercase' : 'flex-1 py-3 cursor-pointer uppercase';
-      updateFilters();
-      render();
-    }
-
     function updateFilters() {
-      const data = currentTab === 'lub' ? rawLub : rawCau;
-      const marcas = [...new Set(data.map(i => i.marca))].filter(Boolean).sort();
-      const categorias = [...new Set(data.map(i => currentTab === 'lub' ? i.linea : i.categoria))].filter(Boolean).sort();
-      document.getElementById('fMar').innerHTML = '<option value="">MARCA (Todas)</option>' + marcas.map(m => `<option value="${m}">${m}</option>`).join('');
-      document.getElementById('fCat').innerHTML = '<option value="">CATEGORÍA (Todas)</option>' + categorias.map(c => `<option value="${c}">${c}</option>`).join('');
+      const fMar = document.getElementById('fMar');
+      const mars = [...new Set(rawLub.map(i => i.marca))].filter(Boolean).sort();
+      fMar.innerHTML = '<option value="">MARCA (Todas)</option>' + mars.map(m => `<option value="${m}">${m}</option>`).join('');
+
+      const fCat = document.getElementById('fCat');
+      const cats = [...new Set(rawLub.map(i => i.linea))].filter(Boolean).sort();
+      fCat.innerHTML = '<option value="">CATEGORÍA (Todas)</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
     }
 
     function render() {
-      const container = document.getElementById('container');
-      const search = document.getElementById('fSearch').value.toLowerCase();
+      const box = document.getElementById('container'), search = document.getElementById('fSearch').value.toLowerCase();
       const mar = document.getElementById('fMar').value;
       const cat = document.getElementById('fCat').value;
-      const data = currentTab === 'lub' ? rawLub : rawCau;
 
-      let filtered = data.filter(i => {
-        const textToSearch = ((currentTab === 'lub' ? i.nombre : i.medida) + " " + i.marca).toLowerCase();
-        return textToSearch.includes(search) && (!mar || i.marca === mar) && (!cat || (currentTab === 'lub' ? i.linea === cat : i.categoria === cat));
+      let filtered = rawLub.filter(i => {
+        const txt = (i.nombre || "").toLowerCase() + " " + (i.marca || "").toLowerCase();
+        return txt.includes(search) && (!mar || i.marca === mar) && (!cat || i.linea === cat);
       });
 
-      if(!filtered.length) { container.innerHTML = '<p class="col-span-full text-center py-20 text-gray-400">Sin resultados.</p>'; return; }
+      if(filtered.length === 0) {
+        box.innerHTML = '<div class="col-span-full text-center py-20 text-gray-400">No hay productos que coincidan.</div>';
+        return;
+      }
 
-      container.innerHTML = filtered.map(i => {
-        const precio = currentTab === 'lub' ? i.precio : i.contado;
-        const titulo = currentTab === 'lub' ? i.nombre : i.medida;
-        return `
-          <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:border-red-300 transition-all">
-            <img src="${i.foto}" class="product-image" onerror="this.src='${IMG_FALLBACK}'">
-            <span class="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-black uppercase">${i.marca}</span>
-            <h3 class="font-bold text-gray-800 text-lg leading-tight h-12 overflow-hidden my-1">${titulo}</h3>
-            <div class="flex justify-between items-center">
-              <span class="text-2xl font-black text-red-700 italic">$${precio.toFixed(2)}</span>
-              <button onclick="addToCart('${i.id}', '${titulo}', ${precio})" class="bg-gray-800 text-white px-5 py-2 rounded-xl font-bold text-xs active:scale-95 shadow-md">AÑADIR</button>
+      box.innerHTML = filtered.map(i => `
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-black uppercase">${i.marca}</span>
+              <span class="text-[10px] text-gray-400 font-mono">${i.ref || ''}</span>
             </div>
-          </div>`;
-      }).join('');
+            <h3 class="font-bold text-gray-800 text-lg leading-tight mb-1">${i.nombre}</h3>
+            <p class="text-xs text-gray-500 italic mb-4">${i.tipo} - ${i.empaque}</p>
+            <div class="flex justify-between items-center">
+              <span class="text-2xl font-black text-red-700 italic">$${i.precio.toFixed(2)}</span>
+              <button onclick="add('${i.id}', '${i.nombre}', ${i.precio})" class="bg-gray-800 text-white px-5 py-2 rounded-xl font-bold text-xs active:scale-95 transition shadow-md">AÑADIR</button>
+            </div>
+          </div>
+        `).join('');
     }
 
-    function addToCart(id, name, price) {
-      const item = cart.find(i => i.id === id);
-      if(item) item.qty++; else cart.push({id, name, price, qty: 1});
-      updateCartUI();
+    function add(id, name, price) {
+      const x = cart.find(i => i.id === id);
+      if(x) x.qty++; else cart.push({id, name, price, qty: 1});
+      updateCart();
     }
 
-    function updateCartUI() {
-      const list = document.getElementById('cartItems');
+    function updateCart() {
       document.getElementById('badge').innerText = cart.reduce((a,b) => a + b.qty, 0);
-      list.innerHTML = cart.map(i => `
+      document.getElementById('cartItems').innerHTML = cart.map(i => `
         <div class="flex justify-between items-center bg-white p-3 border rounded-xl shadow-sm">
-          <div class="flex-1 mr-3"><p class="text-[11px] font-bold">${i.name}</p><p class="text-xs text-red-600 font-black">$${(i.price*i.qty).toFixed(2)}</p></div>
+          <div class="flex-1 mr-3">
+            <p class="text-[11px] font-bold leading-tight">${i.name}</p>
+            <p class="text-xs text-red-600 font-black">$${(i.price*i.qty).toFixed(2)}</p>
+          </div>
           <div class="flex items-center gap-2">
             <button onclick="changeQty('${i.id}',-1)" class="w-7 h-7 bg-gray-50 border rounded-lg">-</button>
             <span class="text-xs font-bold w-4 text-center">${i.qty}</span>
             <button onclick="changeQty('${i.id}',1)" class="w-7 h-7 bg-gray-50 border rounded-lg">+</button>
           </div>
-        </div>`).join('');
-      const total = cart.reduce((a,b) => a + (b.price * b.qty), 0);
-      document.getElementById('cartTotal').innerText = `$${total.toFixed(2)}`;
+        </div>
+      `).join('');
+      document.getElementById('cartTotal').innerText = `$${cart.reduce((a,b) => a + (b.price * b.qty), 0).toFixed(2)}`;
     }
 
     function changeQty(id, d) {
-      const item = cart.find(i => i.id === id);
-      if(item) { item.qty += d; if(item.qty <= 0) cart = cart.filter(i => i.id !== id); }
-      updateCartUI();
+      const x = cart.find(i => i.id === id);
+      if(x) { x.qty += d; if(x.qty <= 0) cart = cart.filter(i => i.id !== id); }
+      updateCart();
     }
 
     function toggleCart() {
@@ -233,41 +186,27 @@
       const tel = document.getElementById('cTelefono').value;
       const total = document.getElementById('cartTotal').innerText;
 
-      if(!cart.length || !nom || !mail || !tel) return alert("Completa todos los campos y el carrito.");
+      if(!cart.length || !nom || !mail || !tel) return alert("Completa todos los datos.");
 
       if(metodo === 'ws') {
-        let msg = `*PEDIDO SUPER CAUCHOS*\n\n*Cliente:* ${nom}\n\n`;
+        let msg = `*PEDIDO LUBRICANTES*\n\n*Cliente:* ${nom}\n\n`;
         cart.forEach(i => msg += `• ${i.name} [x${i.qty}] - $${(i.price*i.qty).toFixed(2)}\n`);
         msg += `\n*TOTAL: ${total}*`;
         window.open(`https://wa.me/${cod}${tel.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
       } else {
-        // --- ENVÍO CON EMAILJS ---
-        const btn = document.getElementById('btnEmail');
-        btn.innerText = "ENVIANDO...";
-        btn.disabled = true;
-
-        const listaText = cart.map(i => `• ${i.name} (x${i.qty}) - $${(i.price * i.qty).toFixed(2)}`).join('\n');
-        
-        const templateParams = {
-          name: nom,
-          time: new Date().toLocaleString(),
-          message: listaText,
-          total: total,
-          user_email: mail // Asegúrate que en EmailJS el campo "To Email" sea {{user_email}}
-        };
-
-        emailjs.send('service_z64r2df', 'template_flf3eix', templateParams)
-          .then(() => {
-            alert("✅ ¡Pedido enviado! Revisa el correo: " + mail);
-            cart = []; updateCartUI(); toggleCart();
-          })
-          .catch((err) => {
-            alert("❌ Error de envío: " + JSON.stringify(err));
-          })
-          .finally(() => {
-            btn.innerText = "ENVIAR AL CORREO";
-            btn.disabled = false;
-          });
+        // Para enviar por correo desde GitHub a GAS
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                cliente: {nombre: nom, correo: mail, codigo: cod, telefono: tel},
+                carrito: cart,
+                total: total
+            })
+        }).then(() => {
+            alert("Pedido enviado al sistema.");
+            cart = []; updateCart(); toggleCart();
+        });
       }
     }
   </script>
